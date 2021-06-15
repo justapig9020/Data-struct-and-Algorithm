@@ -2,6 +2,8 @@
 #define _AVL_H_
 
 #include <stdint.h>
+#include <stdbool.h>
+#include <sys/cdefs.h>
 
 struct Node {
     int val;
@@ -12,6 +14,11 @@ struct Node {
 
 struct AVL {
     struct Node *root;
+    uint32_t height;
 };
+
+bool insert_val(struct AVL *tree, int val);
+struct AVL *new_tree();
+void inorder(struct AVL *tree);
 
 #endif
