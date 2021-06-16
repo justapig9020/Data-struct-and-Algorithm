@@ -40,5 +40,7 @@ int main(void) {
     tree_insert_val(tree, 16);
     print_tree(tree);
 
+    del_tree(tree);
+
     return 0;
 }

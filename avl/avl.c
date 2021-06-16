@@ -186,3 +186,16 @@ struct AVL *new_tree() {
     tree->height = 0;
     return tree;
 }
+
+static void del_subtree(struct Node *root) {
+    if (!root)
+        return;
+    del_subtree(root->left);
+    del_subtree(root->right);
+    free(root);
+}
+
+void del_tree(struct AVL *tree) {
+    del_subtree(tree->root);
+    free(tree);
+}
