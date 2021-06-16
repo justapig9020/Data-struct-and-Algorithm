@@ -9,8 +9,7 @@ struct Stack {
     uint32_t capacity;
 };
 
-static struct Stack *stack_with_capacity(uint32_t c) {
-    struct Stack *s = malloc(sizeof(struct Stack));
+static bool stack_with_capacity(struct Stack *s, uint32_t c) {
     if (!s)
         return NULL;
     s->buf = malloc(sizeof(struct Node ***) * c);
@@ -44,7 +43,6 @@ static struct Node **pop_stack(struct Stack *s) {
 
 static void free_stack(struct Stack *s) {
     free(s->buf);
-    free(s);
 }
 
 static struct Node *new_node(int val) {
@@ -139,13 +137,12 @@ bool insert_val(struct AVL *tree, int val) {
      * (the possible amount of node from root to leaf)
      * should be the height of the tree + 1.
      */
-    struct Stack *stack =
-        stack_with_capacity(tree->height + 1);
-    if (!stack)
+    struct Stack stack;
+    if (!stack_with_capacity(&stack, tree->height + 1))
         goto free_node;
 
     while (*curr) {
-        if (!push_stack(stack, curr))
+        if (!push_stack(&stack, curr))
             goto free_stack;
         int curr_val = (*curr)->val;
         if (curr_val > val)
@@ -154,12 +151,14 @@ bool insert_val(struct AVL *tree, int val) {
             curr = &(*curr)->right;
     }
     *curr = node;
-    balence(stack);
+    balence(&stack);
+    free_stack(&stack);
+
     tree->height = tree->root->height;
     return true;
 
 free_stack:
-    free_stack(stack);
+    free_stack(&stack);
 free_node:
     free(node);
     return false;
