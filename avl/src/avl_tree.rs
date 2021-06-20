@@ -1,5 +1,5 @@
 use crate::avl;
-use crate::avl::AVL;
+use crate::avl::{AVL, Node};
 use std::ops::Drop;
 use std::ptr;
 
@@ -38,6 +38,32 @@ impl AVLTree {
     }
     pub fn inorder(&self) {
         unsafe { avl::inorder(self.tree) }
+    }
+    pub fn graph(&self) {
+        println!(
+"digraph LinkedList {{
+node [shape=record];
+edge [arrowtail=dot, dir=both, tailclip=false]");
+        unsafe {
+            let tree = (*self).tree;
+            let root = (*tree).root;
+            (*root).graph();
+        }
+        println!("}}");
+    }
+}
+
+impl Node {
+    fn graph(&self) {
+        println!("node{:p} [label=\"{{<val>{}|{{<left>|<right>}}}}\"]", self, self.val);
+        if !self.left.is_null() {
+            println!("node{:p}:left:c -> node{:p}", self, self.left);
+            unsafe { (*self.left).graph() };
+        }
+        if !self.right.is_null() {
+            println!("node{:p}:right:c -> node{:p}", self, self.right);
+            unsafe { (*self.right).graph() };
+        }
     }
 }
 
