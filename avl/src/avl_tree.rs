@@ -60,7 +60,7 @@ edge [arrowtail=dot, dir=both, tailclip=false]\n";
         let body = root.graph();
         graph.push_str(body.as_str());
 
-        let footer = "}";
+        let footer = "}\n";
         graph.push_str(footer);
         Ok(graph)
     }

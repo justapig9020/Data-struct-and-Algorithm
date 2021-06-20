@@ -1,17 +1,29 @@
 mod avl;
 mod avl_tree;
-use avl_tree::AVLTree;
+mod manager;
 
-fn main() -> Result<(), ()> {
-    let mut tree = AVLTree::new()?;
-    let insert = [100, 30, 50, 105, 110, 20, 25, 15, 23, 16, 14, 13];
-    for val in insert.iter() {
-        tree.insert_val(*val)?;
-    }
-    let rm = [105, 25, 23];
-    for val in rm.iter() {
-        tree.remove_val(*val)?;
-    }
-    println!("{}", tree.graph()?);
-    Ok(())
+use avl_tree::AVLTree;
+use manager::Manager;
+use interactive::{Interactor, Management, interactive};
+use clap::{App, Arg};
+
+fn main() {
+    let prog = App::new("AVLTree")
+                    .arg(Arg::with_name("input")
+                            .help("input script")
+                            .short("i")
+                            .long("input")
+                            .takes_value(true))
+                    .arg(Arg::with_name("output")
+                            .help("output file")
+                            .short("o")
+                            .long("output")
+                            .takes_value(true))
+                    .get_matches();
+    let mut manager = Manager::new().unwrap();
+    let manager = &mut manager as &mut dyn Management;
+    let inter = Interactor::new(manager);
+    let input = prog.value_of("input");
+    let output = prog.value_of("output");
+    interactive(inter, input, output);
 }
