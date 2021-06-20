@@ -12,6 +12,6 @@ fn main() -> Result<(), ()> {
     for val in rm.iter() {
         tree.remove_val(*val)?;
     }
-    tree.graph();
+    println!("{}", tree.graph()?);
     Ok(())
 }
