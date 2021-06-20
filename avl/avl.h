@@ -18,6 +18,7 @@ struct AVL {
 };
 
 bool insert_val(struct AVL *tree, int val);
+bool remove_val(struct AVL *tree, int val);
 struct AVL *new_tree();
 void inorder(struct AVL *tree);
 void del_tree(struct AVL *tree);

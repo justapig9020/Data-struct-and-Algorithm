@@ -97,9 +97,11 @@ static struct Node *right_rotation(struct Node *root) {
     return new_root;
 }
 
-static void balence(struct Stack *s) {
+static void balance(struct Stack *s) {
     struct Node **ptr;
     while ((ptr = pop_stack(s))) {
+        if (!*ptr)
+            break;
         struct Node *left = (*ptr)->left;
         struct Node *right = (*ptr)->right;
         int diff =
@@ -128,7 +130,6 @@ static void balence(struct Stack *s) {
 bool insert_val(struct AVL *tree, int val) {
     if (!tree)
         return false;
-    struct Node **curr = &tree->root;
     struct Node *node = new_node(val);
     if (!node)
         return false;
@@ -141,6 +142,7 @@ bool insert_val(struct AVL *tree, int val) {
     if (!stack_with_capacity(&stack, tree->height + 1))
         goto free_node;
 
+    struct Node **curr = &tree->root;
     while (*curr) {
         if (!push_stack(&stack, curr))
             goto free_stack;
@@ -151,7 +153,7 @@ bool insert_val(struct AVL *tree, int val) {
             curr = &(*curr)->right;
     }
     *curr = node;
-    balence(&stack);
+    balance(&stack);
     free_stack(&stack);
 
     tree->height = tree->root->height;
@@ -162,6 +164,63 @@ free_stack:
 free_node:
     free(node);
     return false;
+}
+
+static bool remove_node(struct Node **target) {
+    if ((*target)->right) {
+        struct Node **ptr = &(*target)->right;
+        struct Stack stack;
+        if (!stack_with_capacity(&stack, (*ptr)->height + 1))
+            return false;
+        while ((*ptr)->left) {
+            push_stack(&stack, ptr);
+            ptr = &(*ptr)->left;
+        }
+        struct Node *sw = *ptr;
+        struct Node *buf = *target;
+        *ptr = sw->right;
+        sw->right = (*target)->right;
+        sw->left = (*target)->left;
+        *target = sw;
+        balance(&stack);
+        free(buf);
+        free_stack(&stack);
+    } else {
+        struct Node *buf = *target;
+        *target = (*target)->left;
+        free(buf);
+    }
+    return true;
+}
+
+bool remove_val(struct AVL *tree, int val) {
+    if (!tree)
+        return false;
+
+    struct Stack stack;
+    if (!stack_with_capacity(&stack, tree->height + 1))
+        return false;
+
+    bool ret = false;
+    struct Node **cur = &tree->root;
+    while (*cur) {
+        int curr_val = (*cur)->val;
+        if (curr_val > val) {
+            push_stack(&stack, cur);
+            cur = &(*cur)->left;
+        } else if (curr_val < val) {
+            push_stack(&stack, cur);
+            cur = &(*cur)->right;
+        } else {
+            if(remove_node(cur)) {
+                balance(&stack);
+                ret = true;
+            }
+            break;
+        }
+    }
+    free_stack(&stack);
+    return ret;
 }
 
 static void _inorder(struct Node *node) {
