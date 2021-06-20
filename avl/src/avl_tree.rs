@@ -69,7 +69,7 @@ edge [arrowtail=dot, dir=both, tailclip=false]\n";
 impl Node {
     fn graph(&self) -> String {
         let mut info =
-            format!("node{:p} [label=\"{{<val>{}|{{<left>|<right>}}}}\"]\n", self, self.val);
+            format!("node{:p} [label=\"{{<val>val: {}|height: {}|{{<left>|<right>}}}}\"]\n", self, self.val, self.height);
         let left = if !self.left.is_null() {
             info.push_str(
                 format!("node{:p}:left:c -> node{:p}\n", self, self.left)
