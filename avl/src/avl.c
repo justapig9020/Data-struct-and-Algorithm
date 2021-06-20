@@ -97,33 +97,37 @@ static struct Node *right_rotation(struct Node *root) {
     return new_root;
 }
 
+static void balance_node(struct Node **ptr) {
+    if (!*ptr)
+        return;
+    struct Node *left = (*ptr)->left;
+    struct Node *right = (*ptr)->right;
+    int diff =
+        get_height(left) - get_height(right);
+    if (1 < diff) {
+        // right rotation
+        int r_hi = get_height(left->right);
+        int l_hi = get_height(left->left);
+        if (r_hi > l_hi)
+            // lr, make an additional left rotation
+            (*ptr)->left = left_rotation(left);
+        *ptr = right_rotation(*ptr);
+    } else if (-1 > diff) {
+        // left rotation
+        int r_hi = get_height(right->right);
+        int l_hi = get_height(right->left);
+        if (r_hi < l_hi)
+            // rl, make an additional right rotation
+            (*ptr)->right = right_rotation(right);
+        *ptr = left_rotation(*ptr);
+    }
+    update_height(*ptr);
+}
+
 static void balance(struct Stack *s) {
     struct Node **ptr;
     while ((ptr = pop_stack(s))) {
-        if (!*ptr)
-            break;
-        struct Node *left = (*ptr)->left;
-        struct Node *right = (*ptr)->right;
-        int diff =
-            get_height(left) - get_height(right);
-        if (1 < diff) {
-            // right rotation
-            int r_hi = get_height(left->right);
-            int l_hi = get_height(left->left);
-            if (r_hi > l_hi)
-                // lr, make an additional left rotation
-                (*ptr)->left = left_rotation(left);
-            *ptr = right_rotation(*ptr);
-        } else if (-1 > diff) {
-            // left rotation
-            int r_hi = get_height(right->right);
-            int l_hi = get_height(right->left);
-            if (r_hi < l_hi)
-                // rl, make an additional right rotation
-                (*ptr)->right = right_rotation(right);
-            *ptr = left_rotation(*ptr);
-        }
-        update_height(*ptr);
+        balance_node(ptr);
     }
 }
 
@@ -173,9 +177,10 @@ static bool remove_node(struct Node **target) {
         if (!stack_with_capacity(&stack, (*ptr)->height + 1))
             return false;
         while ((*ptr)->left) {
-            push_stack(&stack, ptr);
             ptr = &(*ptr)->left;
+            push_stack(&stack, ptr);
         }
+        pop_stack(&stack);
         struct Node *sw = *ptr;
         struct Node *buf = *target;
         *ptr = sw->right;
@@ -183,6 +188,8 @@ static bool remove_node(struct Node **target) {
         sw->left = (*target)->left;
         *target = sw;
         balance(&stack);
+        balance_node(&sw->right);
+        balance_node(target);
         free(buf);
         free_stack(&stack);
     } else {
