@@ -181,7 +181,15 @@ pub fn interactive(mut inter: Interactor, input: Option<&str>, output: Option<&s
             }
             continue;
         }
-        let graph = inter.gen_graph();
+        let mut graph = String::new();
+        let op = format!("op [label=\"{}\"]\n", line.trim());
+        let header = "digraph g {\n";
+        let body = inter.gen_graph();
+        let footer = "}\n";
+        graph.push_str(header);
+        graph.push_str(op.as_str());
+        graph.push_str(body.as_str());
+        graph.push_str(footer);
         //let graph = graph.parse();
         output.write_graph(graph);
     }

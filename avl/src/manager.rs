@@ -44,6 +44,9 @@ impl Management for Manager {
         }
     }
     fn gen_graph(&self) -> String {
-        self.avl.graph().unwrap()
+        match self.avl.graph() {
+            Ok(g) => g,
+            Err(_) => String::from(""),
+        }
     }
 }

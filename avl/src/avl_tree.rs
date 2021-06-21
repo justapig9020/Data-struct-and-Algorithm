@@ -51,17 +51,14 @@ impl AVLTree {
         let root = unsafe { *tree.root };
 
         let mut graph = String::new();
-        let header =
-"digraph LinkedList {
-node [shape=record];
+        let shape =
+"node [shape=record];
 edge [arrowtail=dot, dir=both, tailclip=false]\n";
-        graph.push_str(header);
+        graph.push_str(shape);
 
         let body = root.graph();
         graph.push_str(body.as_str());
 
-        let footer = "}\n";
-        graph.push_str(footer);
         Ok(graph)
     }
 }
