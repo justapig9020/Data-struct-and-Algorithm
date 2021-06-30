@@ -1,6 +1,8 @@
 use std::io::{self, BufRead, BufReader, BufWriter, Write};
 use std::fs::{self, File, OpenOptions};
 use std::process::Command;
+use std::thread;
+use std::sync::mpsc;
 
 #[cfg(test)]
 mod misc_test {
@@ -193,6 +195,7 @@ pub fn interactive(mut inter: Interactor, input: Option<&str>, output: Option<&s
         //let graph = graph.parse();
         output.write_graph(graph);
     }
+    output.wait();
 }
 
 fn get_input(name: Option<&str>) -> Box<dyn BufRead> {
@@ -223,14 +226,31 @@ fn fetch(input: &mut Box<dyn BufRead>) -> Result<String, ()> {
 struct Outputer <'s> {
     name: Option<&'s str>,
     cnt: usize,
+    handle: thread::JoinHandle<()>,
+    tx: mpsc::Sender<String>,
 }
 
 impl <'s> Outputer <'s> {
     fn new(name: Option<&'s str>) -> Self
     {
+        let (tx, rx): (mpsc::Sender<String>, mpsc::Receiver<String>) = mpsc::channel();
+        let handle = thread::spawn(move || {
+            for name in rx {
+                let outfile = format!("{}.jpg", name);
+                Command::new("dot")
+                        .arg("-Tjpg")
+                        .arg(name.as_str())
+                        .arg("-o")
+                        .arg(outfile.as_str())
+                        .output()
+                        .expect("Generate graph failed");
+            }
+        });
         Self {
             name,
             cnt: 0,
+            handle,
+            tx,
         }
     }
     fn create_dir(&self) -> std::io::Result<()>{
@@ -243,17 +263,13 @@ impl <'s> Outputer <'s> {
         let (mut output, name) = get_output(&self.name, self.cnt);
         self.cnt += 1;
         output.write_fmt(format_args!("{}", graph)).expect("Write to file failed");
-        drop(output);
         if let Some(name) = name {
-            let outfile = format!("{}.jpg", name);
-            Command::new("dot")
-                    .arg("-Tjpg")
-                    .arg(name.as_str())
-                    .arg("-o")
-                    .arg(outfile.as_str())
-                    .output()
-                    .expect("Generate graph failed");
+            self.tx.send(name).unwrap();
         }
+    }
+    fn wait(self) {
+        drop(self.tx);
+        self.handle.join().unwrap();
     }
 }
 
