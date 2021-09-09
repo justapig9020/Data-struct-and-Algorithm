@@ -1,0 +1,11 @@
+[package]
+name = "bst"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bst_lib = { path = "../bst_lib" }
+interactive = { path = "../interactive" }
+clap = "2.33.3"
