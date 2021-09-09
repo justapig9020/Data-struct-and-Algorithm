@@ -13,9 +13,10 @@ struct BST {
 
 struct BST *new_bst();
 void insert(struct BST *tree, int val);
-void preorder(struct BST *tree);
-void inorder(struct BST *tree);
-void postorder(struct BST *tree);
+void preorder(const struct BST *tree);
+void inorder(const struct BST *tree);
+void postorder(const struct BST *tree);
 int remove_val(struct BST *tree, int val);
+void free_bst(struct BST *tree);
 
 #endif

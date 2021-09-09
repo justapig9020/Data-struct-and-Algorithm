@@ -37,7 +37,7 @@ void insert(struct BST* tree, int val) {
     *curr = new;
 }
 
-void _preorder(struct Node *node) {
+void _preorder(const struct Node *node) {
     if (!node)
         return;
     printf("%d, ", node->val);
@@ -45,13 +45,13 @@ void _preorder(struct Node *node) {
     _preorder(node->right);
 }
 
-void preorder(struct BST* tree) {
+void preorder(const struct BST* tree) {
     printf("Pre: ");
     _preorder(tree->root);
     printf("\n");
 }
 
-void _inorder(struct Node *node) {
+void _inorder(const struct Node *node) {
     if (!node)
         return;
     _inorder(node->left);
@@ -59,13 +59,13 @@ void _inorder(struct Node *node) {
     _inorder(node->right);
 }
 
-void inorder(struct BST* tree) {
+void inorder(const struct BST* tree) {
     printf("In: ");
     _inorder(tree->root);
     printf("\n");
 }
 
-void _postorder(struct Node *node) {
+void _postorder(const struct Node *node) {
     if (!node)
         return;
     _postorder(node->left);
@@ -73,7 +73,7 @@ void _postorder(struct Node *node) {
     printf("%d, ", node->val);
 }
 
-void postorder(struct BST* tree) {
+void postorder(const struct BST* tree) {
     printf("Post: ");
     _postorder(tree->root);
     printf("\n");
@@ -128,4 +128,19 @@ int remove_val(struct BST *tree, int val) {
         }
     }
     return -1;
+}
+
+static void free_subtree(struct Node *root) {
+    if (!root)
+        return;
+    free_subtree(root->left);
+    free_subtree(root->right);
+    free_node(root);
+}
+
+void free_bst(struct BST *tree) {
+    if (!tree)
+        return;
+    free_subtree(tree->root);
+    free(tree);
 }
