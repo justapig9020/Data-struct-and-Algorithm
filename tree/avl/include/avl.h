@@ -15,6 +15,10 @@ struct Node {
 struct AVL {
     struct Node *root;
     uint32_t height;
+    // Rocord the height of the tree.
+    // Therefore, we can construct stack of tracing
+    // backword at begining of insert/remove with
+    // enough capacity.
 };
 
 bool insert_val(struct AVL *tree, int val);

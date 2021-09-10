@@ -97,37 +97,38 @@ static struct Node *right_rotation(struct Node *root) {
     return new_root;
 }
 
-static void balance_node(struct Node **ptr) {
-    if (!*ptr)
+static void balance_subtree(struct Node **root) {
+    if (!*root)
         return;
-    struct Node *left = (*ptr)->left;
-    struct Node *right = (*ptr)->right;
+    struct Node *left = (*root)->left;
+    struct Node *right = (*root)->right;
     int diff =
         get_height(left) - get_height(right);
-    if (1 < diff) {
-        // right rotation
+    const int threshold = 1;
+    if (threshold < diff) {
+        /* Left subtree is heigher, do right rotation. */
         int r_hi = get_height(left->right);
         int l_hi = get_height(left->left);
         if (r_hi > l_hi)
-            // lr, make an additional left rotation
-            (*ptr)->left = left_rotation(left);
-        *ptr = right_rotation(*ptr);
-    } else if (-1 > diff) {
-        // left rotation
+            /* LR, Make an additional left rotation. */
+            (*root)->left = left_rotation(left);
+        *root = right_rotation(*root);
+    } else if ((-1 * threshold) > diff) {
+        /* Right subtree is heigher, left rotation. */
         int r_hi = get_height(right->right);
         int l_hi = get_height(right->left);
         if (r_hi < l_hi)
-            // rl, make an additional right rotation
-            (*ptr)->right = right_rotation(right);
-        *ptr = left_rotation(*ptr);
+            /* RL, make an additional right rotation. */
+            (*root)->right = right_rotation(right);
+        *root = left_rotation(*root);
     }
-    update_height(*ptr);
+    update_height(*root);
 }
 
 static void balance(struct Stack *s) {
     struct Node **ptr;
     while ((ptr = pop_stack(s))) {
-        balance_node(ptr);
+        balance_subtree(ptr);
     }
 }
 
@@ -146,8 +147,13 @@ bool insert_val(struct AVL *tree, int val) {
     if (!stack_with_capacity(&stack, tree->height + 1))
         goto free_node;
 
+    /* Insert the node into the tree as a normal BST. */
     struct Node **curr = &tree->root;
     while (*curr) {
+        /* We will balance the tree after insertion.
+         * Push all go through nodes into stack, hence we can easily
+         * check the height backwardly.
+         */
         if (!push_stack(&stack, curr))
             goto free_stack;
         int curr_val = (*curr)->val;
@@ -157,6 +163,8 @@ bool insert_val(struct AVL *tree, int val) {
             curr = &(*curr)->right;
     }
     *curr = node;
+
+    /* Followed the rule of AVL to balance the tree */
     balance(&stack);
     free_stack(&stack);
 
@@ -176,20 +184,35 @@ static bool remove_node(struct Node **target) {
         struct Stack stack;
         if (!stack_with_capacity(&stack, (*ptr)->height + 1))
             return false;
+
+        /* Find the smallest node in the right subtree */
         while ((*ptr)->left) {
             ptr = &(*ptr)->left;
             push_stack(&stack, ptr);
         }
         pop_stack(&stack);
-        struct Node *sw = *ptr;
+        /* Pop the smallest node from stack. Due to the node will soon be swap
+         * to the root of the subtree and we are not going to balance it in
+         * this function.
+         */
+
+        /* Remove target from the tree. */
+        struct Node *new_root = *ptr;
         struct Node *buf = *target;
-        *ptr = sw->right;
-        sw->right = (*target)->right;
-        sw->left = (*target)->left;
-        *target = sw;
+        *ptr = new_root->right;
+        new_root->right = (*target)->right;
+        new_root->left = (*target)->left;
+        *target = new_root;
+
         balance(&stack);
-        balance_node(&sw->right);
-        balance_node(target);
+        /* Balance from parent of "new_root" to left child of right child of "target". */
+
+        balance_subtree(&new_root->right);
+        /* Since the target has been replaced by new_root, we shouldn't balance &(*target)->right*/
+
+        balance_subtree(target);
+        /* Balance the subtree which rooted by *target (the subtree is now rooted by new_root) */
+
         free(buf);
         free_stack(&stack);
     } else {
@@ -210,6 +233,8 @@ bool remove_val(struct AVL *tree, int val) {
 
     bool ret = false;
     struct Node **cur = &tree->root;
+
+    /* Find target node as normal BST. */
     while (*cur) {
         int curr_val = (*cur)->val;
         if (curr_val > val) {
