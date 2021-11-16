@@ -71,6 +71,23 @@ static void inorder_do(struct thread_node *root, node_op_t node_do) {
     }
 }
 
+static struct thread_node* preorder_next_wrong(struct thread_node *node) {
+    if (!node)
+        return NULL;
+
+    struct thread_node *curr = node;
+    if (HAS_CHILD(curr->left))
+        return CHILD_OF(curr->left);
+    if (HAS_CHILD(curr->right))
+        return CHILD_OF(curr->right);
+
+    curr = CHILD_OF(curr->right);
+    while (!HAS_CHILD(curr->right))
+        curr = CHILD_OF(curr->right);
+
+    return CHILD_OF(curr->right);
+}
+
 static struct thread_node* preorder_next(struct thread_node *node) {
     if (!node)
         return NULL;
@@ -90,7 +107,11 @@ static struct thread_node* preorder_next(struct thread_node *node) {
 static void preorder_do(struct thread_node *root, node_op_t node_do) {
     struct thread_node *curr = root;
     while (curr) {
+    #ifdef WRONG
+        struct thread_node *next = preorder_next_wrong(curr);
+    #else
         struct thread_node *next = preorder_next(curr);
+    #endif
         node_do(curr);
         curr = next;
     }
