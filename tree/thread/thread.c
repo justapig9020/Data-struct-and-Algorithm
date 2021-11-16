@@ -4,11 +4,11 @@
 #include <sys/resource.h>
 #include <stdio.h>
 
-#define HAS_CHILD(thread) (thread.is_thread == false)
-#define CHILD_OF(thread) (thread.child)
+#define HAS_CHILD(thread) ((thread).is_thread == false)
+#define CHILD_OF(thread) ((thread).child)
 #define THREAD_UPDATE(thread, ptr, type) do { \
-    thread.child = ptr; \
-    thread.is_thread = type; \
+    (thread).child = ptr; \
+    (thread).is_thread = type; \
 } while(0)
 
 #define TYPE_THREAD true
@@ -138,38 +138,39 @@ void free_tree(struct thread_tree *tree) {
 bool insert_value(struct thread_tree *tree, int val) {
     if (!tree)
         return false;
-    struct thread_node *curr = tree->root;
+
     struct thread_node *new = new_node(val);
     if (!new)
         return false;
 
+    struct thread_node *curr = tree->root;
     if (!curr) {
         tree->root = new;
         return true;
     }
+
+    struct thread *next;
+    struct thread_node **to_parent;
+    struct thread_node **to_preceder;
+
     while (1) {
         if (curr->value > val) {
-            // go left
-            if (HAS_CHILD(curr->left)) {
-                curr = CHILD_OF(curr->left);
-            } else {
-                CHILD_OF(new->right) = curr;
-                CHILD_OF(new->left) = CHILD_OF(curr->left);
-                THREAD_UPDATE(curr->left, new, TYPE_CHILD);
-                break;
-            }
+            next = &curr->left;
+            to_parent = &CHILD_OF(new->right);
+            to_preceder = &CHILD_OF(new->left);
         } else {
-            // go right
-            if (HAS_CHILD(curr->right)) {
-                curr = CHILD_OF(curr->right);
-            } else {
-                CHILD_OF(new->left) = curr;
-                CHILD_OF(new->right) = CHILD_OF(curr->right);
-                THREAD_UPDATE(curr->right, new, TYPE_CHILD);
-                break;
-            }
+            next = &curr->right;
+            to_preceder = &CHILD_OF(new->right);
+            to_parent = &CHILD_OF(new->left);
         }
+        if (!HAS_CHILD(*next)) {
+            break;
+        }
+        curr = CHILD_OF(*next);
     }
+    *to_parent = curr;
+    *to_preceder = CHILD_OF(*next);
+    THREAD_UPDATE(*next, new, TYPE_CHILD);
     return true;
 }
 

@@ -10,6 +10,7 @@ int main(void) {
     insert_value(tree, 30);
     insert_value(tree, 1);
     insert_value(tree, 6);
+    insert_value(tree, 15);
     print_preorder(tree);
     print_inorder(tree);
     free_tree(tree);
