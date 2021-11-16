@@ -73,6 +73,33 @@ impl Obst {
                         .iter()
                         .map(|n| n.key)
                         .collect();
+
+        let mut cost_matrix = String::new();
+        let mut root_matrix = String::new();
+        let mut weight_matrix = String::new();
+        for row in otree.iter() {
+            for entry in row.iter() {
+                cost_matrix.push_str(&format!("{}\t", entry.cost));
+                root_matrix.push_str(&format!("{}\t", entry.root));
+                weight_matrix.push_str(&format!("{}\t", entry.weight));
+            }
+            cost_matrix.push('\n');
+            root_matrix.push('\n');
+            weight_matrix.push('\n');
+        }
+
+        println!("Cost:");
+        println!("{}", cost_matrix);
+        println!("");
+
+        println!("Root:");
+        println!("{}", root_matrix);
+        println!("");
+
+        println!("Weight:");
+        println!("{}", weight_matrix);
+        println!("");
+
         BstConstructor {
             map: otree,
             key,
